@@ -4,10 +4,13 @@
 npm `package-lock.json` without running lifecycle scripts and without opening
 network access for install scripts.
 
+Source: https://github.com/hocestnonsatis/weave · License: MIT
+
 ## Install (verify checksums)
 
 ```bash
 # After downloading weave + SHA256SUMS from the GitHub Release:
+# https://github.com/hocestnonsatis/weave/releases
 sha256sum -c SHA256SUMS
 install -m 0755 weave ~/.local/bin/weave
 weave --version

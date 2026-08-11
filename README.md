@@ -8,9 +8,13 @@ Weave separates **source state**, **dependency state**, and **workspace state**.
 
 ## Status
 
-**0.1.0 release candidate** (Phase 14). Extraction-first public 0.x scope.
+**0.1.0** (draft GitHub Release). Extraction-first public 0.x scope.
 Plain `weave switch` stays execution- and network-free; experimental exec
 requires config opt-in + `--with-exec` and is never silently enabled.
+
+- Repository: https://github.com/hocestnonsatis/weave
+- License: [MIT](./LICENSE)
+- Release notes: [`docs/release-notes-0.1.md`](./docs/release-notes-0.1.md) · Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
 Compatibility: [`docs/compatibility.md`](./docs/compatibility.md) · Platforms: [`docs/supported-platforms.md`](./docs/supported-platforms.md) · Security: [`docs/security.md`](./docs/security.md) · Release: [`docs/release.md`](./docs/release.md)
 
