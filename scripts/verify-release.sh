@@ -59,9 +59,21 @@ export WEAVE_HOME="$WORKDIR/weave-home"
 export HOME="$WORKDIR/home"
 mkdir -p "$HOME" "$WEAVE_HOME"
 
-# Clean PATH: only system tools + our binary
+# Clean PATH: system tools + our binary (+ node if already on PATH, e.g. CI setup-node).
+# Capture node *before* narrowing PATH — runners often install it under hostedtoolcache.
+NODE_DIR=""
+if command -v node >/dev/null 2>&1; then
+  NODE_DIR="$(cd "$(dirname "$(command -v node)")" && pwd)"
+fi
 CLEAN_PATH="$(dirname "$BIN"):/usr/bin:/bin"
+if [[ -n "$NODE_DIR" ]]; then
+  CLEAN_PATH="$NODE_DIR:$CLEAN_PATH"
+fi
 export PATH="$CLEAN_PATH"
+if ! command -v node >/dev/null 2>&1; then
+  echo "error: node is required on PATH for extraction-only verify (install Node.js)" >&2
+  exit 1
+fi
 
 PROJECT="$WORKDIR/project"
 mkdir -p "$PROJECT"
