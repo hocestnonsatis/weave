@@ -1,0 +1,45 @@
+---
+description: Autonomously execute WEAVE.md milestones without asking to continue
+alwaysApply: true
+---
+
+# Autonomous Milestone Execution
+
+`WEAVE.md` is the approved charter and milestone plan. Treat its sequence as already authorized work.
+
+## Continue automatically
+
+When a milestone completes successfully (builds, tests, and relevant checks pass), **immediately start the next defined milestone**. Do not ask for permission or say “let me know if you want me to continue.”
+
+## Decide locally for routine work
+
+Make ordinary implementation choices without asking when they fit `WEAVE.md`:
+
+- Rust structure, naming, modules, tests
+- Dependency versions (verify current crates.io versions)
+- Refactors, error copy, CLI wording
+- Other reversible engineering details
+
+Prefer the simplest technically sound option and keep going.
+
+## Ask only when blocked
+
+Ask the user only if:
+
+1. A real product/architectural choice is **outside** what `WEAVE.md` already settles (including open questions Q1–Q5 that need an explicit product call), or
+2. Safe progress is impossible without credentials, secrets, or irreversible external action
+
+## Session closeout
+
+At the end of a work session, report:
+
+1. What completed
+2. What was verified
+3. Current milestone
+4. Next concrete task
+
+Do **not** ask whether to continue.
+
+## Override
+
+Explicit user instructions always win over this rule.

@@ -1,0 +1,17 @@
+{
+  "id": "socketio",
+  "category": "medium",
+  "source": {
+    "host": "github",
+    "repository": "socketio/socket.io",
+    "ref": "socket.io@4.7.5",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/socketio/socket.io/socket.io@4.7.5/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "848e517a30898ea38301f3b445436f3f93b396c5ff5237169cbe5ebeb9a9c59b",
+  "lockfile_bytes": 292144,
+  "packages_map_entries": 384,
+  "lockfile_version": 2,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

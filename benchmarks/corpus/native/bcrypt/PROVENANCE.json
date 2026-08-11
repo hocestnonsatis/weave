@@ -1,0 +1,17 @@
+{
+  "id": "bcrypt",
+  "category": "native",
+  "source": {
+    "host": "github",
+    "repository": "kelektiv/node.bcrypt.js",
+    "ref": "v5.1.1",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/kelektiv/node.bcrypt.js/v5.1.1/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "ebd0dce639433374c8837ff0dc5aa379406b49b0dc242c54ed27f42a5b1f0207",
+  "lockfile_bytes": 263330,
+  "packages_map_entries": 325,
+  "lockfile_version": 2,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

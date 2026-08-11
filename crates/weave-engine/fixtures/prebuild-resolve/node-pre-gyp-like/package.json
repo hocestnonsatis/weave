@@ -1,0 +1,15 @@
+{
+  "name": "demo-bcrypt-like",
+  "version": "5.1.0",
+  "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build"
+  },
+  "binary": {
+    "module_name": "bcrypt_lib",
+    "module_path": "./lib/binding/napi-v{napi_build_version}",
+    "remote_path": "./{name}/v{version}/{tool}/{tool_version}/",
+    "package_name": "{node_abi}-{platform}-{arch}.tar.gz",
+    "host": "https://github.com/kelektiv/node.bcrypt.js/releases/download/",
+    "napi_versions": [3]
+  }
+}

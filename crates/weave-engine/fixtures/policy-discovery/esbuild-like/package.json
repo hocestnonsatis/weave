@@ -1,0 +1,7 @@
+{
+  "name": "esbuild",
+  "version": "0.0.0-fixture",
+  "scripts": {
+    "postinstall": "node install.js"
+  }
+}

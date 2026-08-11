@@ -1,0 +1,7 @@
+{
+  "name": "sharp",
+  "version": "0.33.0",
+  "scripts": {
+    "install": "node install/check"
+  }
+}

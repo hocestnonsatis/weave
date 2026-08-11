@@ -1,0 +1,17 @@
+{
+  "id": "axios",
+  "category": "medium",
+  "source": {
+    "host": "github",
+    "repository": "axios/axios",
+    "ref": "v1.7.7",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/axios/axios/v1.7.7/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "dfde091144515d83da9a7ff60a9d4485ed67b20bbc4e421cd330f87ba28854fc",
+  "lockfile_bytes": 1675263,
+  "packages_map_entries": 2111,
+  "lockfile_version": 2,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

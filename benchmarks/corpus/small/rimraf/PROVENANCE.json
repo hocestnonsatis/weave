@@ -1,0 +1,17 @@
+{
+  "id": "rimraf",
+  "category": "small",
+  "source": {
+    "host": "github",
+    "repository": "isaacs/rimraf",
+    "ref": "v6.0.1",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/isaacs/rimraf/v6.0.1/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "206d5bbae2a5bb230bbb6ac2f19b345d0a77a03f1a014cdf8c60f75451fe9c51",
+  "lockfile_bytes": 159973,
+  "packages_map_entries": 352,
+  "lockfile_version": 3,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

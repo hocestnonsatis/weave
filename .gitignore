@@ -1,0 +1,32 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Weave runtime
+.weave/
+**/.weave/
+
+# Node fixtures / local experiments
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+credentials.json
+*.pem
+
+# Benchmark / temp junk
+/benchmarks/out/
+/tmp/
+/dist/

@@ -1,0 +1,17 @@
+{
+  "id": "puppeteer-native",
+  "category": "native",
+  "source": {
+    "host": "github",
+    "repository": "puppeteer/puppeteer",
+    "ref": "puppeteer-v23.4.0",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/puppeteer/puppeteer/puppeteer-v23.4.0/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "444977dc5e4a1c5af6c4d713f13f118994e41221d2bf57cded877b6719d488a5",
+  "lockfile_bytes": 595842,
+  "packages_map_entries": 1215,
+  "lockfile_version": 3,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

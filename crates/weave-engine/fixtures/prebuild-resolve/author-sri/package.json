@@ -1,0 +1,19 @@
+{
+  "name": "author-sri-pkg",
+  "version": "1.0.0",
+  "weave": {
+    "declaredOutputs": [
+      "prebuilds/linux-x64/addon.node"
+    ],
+    "prebuildFetches": [
+      {
+        "url": "https://cdn.example.com/author-sri-pkg/linux-x64-137.node",
+        "integrity": "sha256-S2RVnWoXKGSQi+m2nuQsFbkM6x6AqX/GsamehuwdrMs=",
+        "output": "prebuilds/linux-x64/addon.node",
+        "node_abi": "137",
+        "os": "linux",
+        "cpu": "x64"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+[package]
+name = "weave-bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Reproducible Weave benchmark harness"
+publish = false
+
+[[bin]]
+name = "weave-bench"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+tempfile = { workspace = true }
+walkdir = "2.5.0"
+weave-core = { workspace = true }
+weave-engine = { workspace = true }
+weave-fs = { workspace = true }
+weave-lockfile = { workspace = true }
+weave-store = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

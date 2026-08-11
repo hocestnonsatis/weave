@@ -1,0 +1,17 @@
+{
+  "id": "axios-v1.6",
+  "category": "divergence",
+  "source": {
+    "host": "github",
+    "repository": "axios/axios",
+    "ref": "v1.6.8",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/axios/axios/v1.6.8/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "23bcbe123d53fd708f574a01145dc8d203324d3ccfe17077bba7e0853dd10e8c",
+  "lockfile_bytes": 1674266,
+  "packages_map_entries": 2110,
+  "lockfile_version": 2,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

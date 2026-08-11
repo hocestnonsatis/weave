@@ -1,0 +1,12 @@
+{
+  "name": "demo-native-incomplete",
+  "version": "1.0.0",
+  "scripts": { "install": "node-pre-gyp install --fallback-to-build" },
+  "binary": {
+    "module_name": "addon",
+    "module_path": "./lib/binding/",
+    "host": "https://cdn.example.com/",
+    "remote_path": "./{name}/",
+    "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
+  }
+}

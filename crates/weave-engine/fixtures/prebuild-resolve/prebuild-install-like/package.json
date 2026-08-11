@@ -1,0 +1,7 @@
+{
+  "name": "demo-sodium-like",
+  "version": "0.1.0",
+  "scripts": {
+    "install": "prebuild-install || node-gyp rebuild"
+  }
+}

@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  gates:
+    name: fmt / clippy / test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Release gates script
+        run: bash scripts/ci-gates.sh
+
+  release-build:
+    name: reproducible release artifact
+    runs-on: ubuntu-latest
+    needs: gates
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build release + checksums
+        run: bash scripts/release-build.sh
+
+      - name: Verify release binary (extraction-only)
+        run: bash scripts/verify-release.sh
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: weave-linux-x86_64
+          path: |
+            dist/weave
+            dist/SHA256SUMS
+            dist/SHA256SUMS.sri
+            dist/BUILDINFO.json
+            dist/weave.sha256
+
+      - name: Attest build provenance
+        if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/weave

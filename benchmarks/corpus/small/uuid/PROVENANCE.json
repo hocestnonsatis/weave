@@ -1,0 +1,17 @@
+{
+  "id": "uuid",
+  "category": "small",
+  "source": {
+    "host": "github",
+    "repository": "uuidjs/uuid",
+    "ref": "v10.0.0",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/uuidjs/uuid/v10.0.0/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "3a82e1426903325537bae58502e2d92a0cf2939dc675972a8fd85db436f07a39",
+  "lockfile_bytes": 661866,
+  "packages_map_entries": 1468,
+  "lockfile_version": 3,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

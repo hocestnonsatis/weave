@@ -1,0 +1,45 @@
+---
+description: Enforce WEAVE.md milestone order, DoD, and verification discipline
+alwaysApply: true
+---
+
+# Milestone Discipline
+
+`WEAVE.md` is the authoritative execution plan (milestones, non-goals, Definition of Done).
+
+## Before coding
+
+1. Identify the **current milestone**.
+2. Restate its **Definition of Done** (from that milestone + §46 when relevant).
+3. Implement only what that milestone requires.
+
+## Ordering
+
+- Complete milestones **in WEAVE.md order** unless the user explicitly changes the plan.
+- Do **not** skip ahead to speculative future features (FUSE, daemon, cross-language, etc.) because they are interesting.
+- Do **not** mark a milestone complete unless implementation **and** required tests meet its DoD.
+
+## Continuation
+
+When a milestone’s DoD is met, **immediately start the next milestone** in the same session when practical. If the next milestone is clearly specified, do **not** ask for confirmation.
+
+## Open architectural questions
+
+Questions marked open in `WEAVE.md` (e.g. Q1–Q5) are **research items**, not permission gates. Do not stall unrelated milestone work waiting on them. Prefer small, reversible choices until evidence forces a larger architectural call; record lasting choices in `docs/decisions/`.
+
+## After implementation
+
+Run the project’s required checks for the touched work, typically:
+
+```text
+cargo fmt
+cargo check
+cargo test
+cargo clippy
+```
+
+plus any milestone-specific integration/fixture tests.
+
+## When blocked
+
+Report the **exact technical blocker** and why it cannot be resolved safely without user input. Do not invent fake progress or silently weaken correctness guarantees.

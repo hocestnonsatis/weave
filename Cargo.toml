@@ -1,0 +1,44 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/weave-cli",
+    "crates/weave-core",
+    "crates/weave-git",
+    "crates/weave-lockfile",
+    "crates/weave-store",
+    "crates/weave-fs",
+    "crates/weave-engine",
+    "crates/weave-bench",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.75"
+repository = "https://github.com/hocestnonsatis/weave"
+
+[workspace.dependencies]
+weave-core = { path = "crates/weave-core" }
+weave-git = { path = "crates/weave-git" }
+weave-lockfile = { path = "crates/weave-lockfile" }
+weave-store = { path = "crates/weave-store" }
+weave-fs = { path = "crates/weave-fs" }
+weave-engine = { path = "crates/weave-engine" }
+
+anyhow = "1.0.104"
+clap = { version = "4.6.6", features = ["derive"] }
+flate2 = "1.1.9"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sha2 = "0.10.9"
+tar = "0.4.46"
+tempfile = "3.27.0"
+thiserror = "2.0.20"
+toml = "0.8.23"
+ureq = "2.12.1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

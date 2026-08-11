@@ -1,0 +1,30 @@
+# Example Weave policy pack (Phase 13)
+#
+# REVIEW BEFORE APPLYING. Applying never enables execution or open networking.
+# Usage:
+#   weave exec apply-pack policy-packs/example-demo.toml
+#   weave exec apply-pack policy-packs/example-demo.toml --write
+#
+# Then set profile=prebuild-fetch and execution.enabled=true only after review,
+# and use `weave switch --with-exec`.
+
+version = 1
+id = "example-demo"
+description = "Demonstrates a reviewed HTTPS prebuild fetch entry for docs/tests"
+
+allow_packages = ["example-native"]
+
+[declared_outputs]
+example-native = ["prebuilds/linux-x64/addon.node"]
+
+[prebuild]
+allow_hosts = ["cdn.example.com"]
+
+[[prebuild.fetches]]
+package = "example-native"
+url = "https://cdn.example.com/example-native/linux-x64-137.node"
+integrity = "sha256-aCL5qFAalI7QkktFpuoMDlwLyPRImSvpvVyWWrtSiIo="
+output = "prebuilds/linux-x64/addon.node"
+node_abi = "137"
+os = "linux"
+cpu = "x64"

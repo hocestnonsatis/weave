@@ -1,0 +1,16 @@
+[package]
+name = "weave-store"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Content-addressed artifact store for Weave"
+
+[dependencies]
+serde = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+weave-core = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

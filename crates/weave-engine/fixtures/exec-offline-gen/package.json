@@ -1,0 +1,8 @@
+{
+  "name": "exec-gen",
+  "version": "1.0.0",
+  "description": "Phase 7 offline sandboxed execution fixture",
+  "scripts": {
+    "install": "node scripts/install.js"
+  }
+}

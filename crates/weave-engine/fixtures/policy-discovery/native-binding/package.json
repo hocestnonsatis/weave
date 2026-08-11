@@ -1,0 +1,13 @@
+{
+  "name": "demo-native",
+  "version": "1.0.0",
+  "gypfile": true,
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "binary": {
+    "module_name": "demo_native",
+    "module_path": "./lib/binding/",
+    "host": "https://example.invalid/"
+  }
+}

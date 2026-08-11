@@ -1,0 +1,24 @@
+[package]
+name = "weave-engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Orchestration engine for Weave environments"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+ureq = { workspace = true }
+weave-core = { workspace = true }
+weave-fs = { workspace = true }
+weave-git = { workspace = true }
+weave-lockfile = { workspace = true }
+weave-store = { workspace = true }
+
+[dev-dependencies]
+sha2 = { workspace = true }
+tempfile = { workspace = true }

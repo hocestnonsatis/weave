@@ -1,0 +1,17 @@
+{
+  "id": "nestjs-v10.3",
+  "category": "divergence",
+  "source": {
+    "host": "github",
+    "repository": "nestjs/nest",
+    "ref": "v10.3.10",
+    "path": "package-lock.json",
+    "raw_url": "https://raw.githubusercontent.com/nestjs/nest/v10.3.10/package-lock.json"
+  },
+  "captured_at": "2026-08-11T16:36:59Z",
+  "lockfile_sha256": "52daf044792ac0996a6037bff90a5cba4dd9c05c1eb3a679c96bd3b747480b2c",
+  "lockfile_bytes": 1199759,
+  "packages_map_entries": 3460,
+  "lockfile_version": 3,
+  "license_note": "Snapshot of upstream lockfile for reproducible benchmarking. Upstream project license applies. No node_modules vendored."
+}
