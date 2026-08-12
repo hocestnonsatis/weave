@@ -173,4 +173,19 @@ grep -qi 'enabled\|with-exec\|execution' /tmp/weave-with-exec.err \
     exit 1
   }
 
+echo "==> agent / adoption JSON surface (guide, idempotent init, status, recover)"
+GUIDE_JSON="$("$BIN" guide --json)"
+echo "$GUIDE_JSON" | grep -q '"recipe"'
+echo "$GUIDE_JSON" | grep -q 'weave init'
+INIT_JSON="$("$BIN" init --json)"
+echo "$INIT_JSON" | grep -q '"created": false'
+STATUS_JSON="$("$BIN" status --json)"
+echo "$STATUS_JSON" | grep -q '"next_steps"'
+echo "$STATUS_JSON" | grep -q '"active_environment"'
+RECOVER_JSON="$("$BIN" recover --json)"
+echo "$RECOVER_JSON" | grep -q '"removed_candidate"'
+# Help must surface guide without architecture docs.
+HELP_OUT="$("$BIN" --help)"
+echo "$HELP_OUT" | grep -qi 'guide'
+
 echo "OK: fresh-install extraction-only path verified"

@@ -1,0 +1,43 @@
+---
+description: Post-0.1 evidence-first development; no autonomous new features
+alwaysApply: true
+---
+
+# Post-0.1 Development Rule
+
+Do **not** start a new feature phase merely because a theoretical improvement exists.
+
+M0–Phase 19 / `v0.1.0` charter work is complete. Prefer deleting complexity over adding it. Never expand the architecture merely for theoretical compatibility.
+
+## Classify before implementing
+
+| # | Category | Autonomous implement? |
+|---|---|---|
+| 1 | Correctness bug | Yes, with evidence |
+| 2 | Security issue | Yes, with evidence |
+| 3 | Data-loss / recovery issue | Yes, with evidence |
+| 4 | Reproducible performance regression | Yes, with evidence |
+| 5 | Real-world adoption blocker | Yes, with evidence |
+| 6 | New feature | **No** — design/evidence report first; wait for explicit approval |
+
+## Evidence required (1–5)
+
+State the concrete failure, how to reproduce it, and which workflow breaks. Do not “fix” speculative issues.
+
+## New features (category 6)
+
+Before any implementation, write a short design/evidence report covering:
+
+1. Concrete problem
+2. Evidence it exists
+3. Affected workflows
+4. Why the current architecture cannot already solve it
+5. Expected benefit
+6. Complexity / security cost
+
+**Only implement after the design is explicitly approved.**
+
+## Overrides
+
+- Explicit user instructions always win.
+- This rule **supersedes** autonomous “start the next milestone/phase” behavior for post-0.1 work.

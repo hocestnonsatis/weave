@@ -3,23 +3,31 @@
 Shortest **safe** path. Weave never invents SRI, URLs, outputs, or permissions,
 and never grants lifecycle scripts general network access.
 
+**Agents:** start with [`docs/agent-quickstart.md`](./agent-quickstart.md) or
+`weave guide --json` — architecture knowledge is not required.
+
 ## 1. Prerequisites
 
 - Git repository
-- `package.json` + npm `package-lock.json` (lockfileVersion 2/3)
+- `package.json` + npm `package-lock.json` (lockfileVersion 1/2/3)
 - Linux x86_64 for the current exec sandbox target
+
+Yarn/pnpm/Bun-only trees are detected and refused clearly. Weave will not
+convert lockfiles or replace those package managers.
 
 ## 2. Extraction-only projects (most apps)
 
 ```bash
-weave init
-weave doctor          # ExtractionReady / no execution required
-weave switch          # materialize node_modules from the lockfile
-node <your-entrypoint>
+weave init --json       # idempotent
+weave doctor --json     # ExtractionReady / no execution required
+weave switch --json     # materialize node_modules from the lockfile
+weave status --json     # follow next_steps
 ```
 
 No `[execution]` configuration is required. Plain `weave switch` stays
 execution- and network-free.
+
+Interrupted switch leftovers: `weave recover --json`.
 
 ## 3. Projects with native / lifecycle packages
 

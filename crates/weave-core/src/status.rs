@@ -54,6 +54,30 @@ pub struct EnvironmentStatus {
     pub known_count: usize,
     /// Branch → environment association for the current branch, if any.
     pub branch_association: Option<String>,
+    /// Known environments with lifecycle/ownership fields (agent-friendly).
+    #[serde(default)]
+    pub environments: Vec<EnvironmentSummary>,
+}
+
+/// One environment row embedded in [`EnvironmentStatus`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EnvironmentSummary {
+    /// Environment id.
+    pub id: String,
+    /// Optional label.
+    pub label: Option<String>,
+    /// Optional caller-supplied owner/session.
+    pub owner: Option<String>,
+    /// Package count.
+    pub package_count: usize,
+    /// Whether this is the active environment.
+    pub active: bool,
+    /// Whether graph matches current lockfile (when known).
+    pub matches_lockfile: Option<bool>,
+    /// Creation stamp (unix seconds string).
+    pub created_at: Option<String>,
+    /// Last activation stamp (unix seconds string).
+    pub last_activated_at: Option<String>,
 }
 
 /// Aggregated project status returned by `weave status`.
@@ -71,4 +95,7 @@ pub struct ProjectStatus {
     pub materialization: MaterializationStatus,
     /// Environment manager state.
     pub environment: EnvironmentStatus,
+    /// Suggested next CLI commands for agents/humans (ordered).
+    #[serde(default)]
+    pub next_steps: Vec<String>,
 }

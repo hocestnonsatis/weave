@@ -1,45 +1,36 @@
 ---
-description: Autonomously execute WEAVE.md milestones without asking to continue
+description: Autonomously execute WEAVE.md milestones only on the pre-0.1 charter track
 alwaysApply: true
 ---
 
 # Autonomous Milestone Execution
 
-`WEAVE.md` is the approved charter and milestone plan. Treat its sequence as already authorized work.
+## Post-0.1 (current default)
 
-## Continue automatically
+Do **not** autonomously start new feature phases. Follow
+`.cursor/rules/post-0.1-development.mdc` / ADR-0020. Category 6 (new features)
+needs a design/evidence report and explicit approval.
 
-When a milestone completes successfully (builds, tests, and relevant checks pass), **immediately start the next defined milestone**. Do not ask for permission or say “let me know if you want me to continue.”
+## Pre-0.1 charter track (legacy)
 
-## Decide locally for routine work
+Only when actively executing an unfinished WEAVE.md milestone sequence:
 
-Make ordinary implementation choices without asking when they fit `WEAVE.md`:
+### Continue automatically
 
-- Rust structure, naming, modules, tests
-- Dependency versions (verify current crates.io versions)
-- Refactors, error copy, CLI wording
-- Other reversible engineering details
+When a charter milestone completes successfully, **immediately start the next
+defined milestone**. Do not ask for permission to continue that charter.
 
-Prefer the simplest technically sound option and keep going.
+### Decide locally for routine work
 
-## Ask only when blocked
+Make ordinary implementation choices without asking when they fit `WEAVE.md`
+(structure, naming, tests, reversible details). Prefer the simplest sound option.
 
-Ask the user only if:
+### Ask only when blocked
 
-1. A real product/architectural choice is **outside** what `WEAVE.md` already settles (including open questions Q1–Q5 that need an explicit product call), or
-2. Safe progress is impossible without credentials, secrets, or irreversible external action
-
-## Session closeout
-
-At the end of a work session, report:
-
-1. What completed
-2. What was verified
-3. Current milestone
-4. Next concrete task
-
-Do **not** ask whether to continue.
+Ask only if a product/architectural choice is outside what `WEAVE.md` settles,
+or progress needs credentials / irreversible external action.
 
 ## Override
 
-Explicit user instructions always win over this rule.
+Explicit user instructions always win over this rule. Post-0.1 development rule
+wins over automatic next-phase continuation for feature work.

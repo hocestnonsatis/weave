@@ -30,6 +30,25 @@ struct PackageLockHeader {
 pub fn detect_lockfile(root: &Path) -> weave_core::Result<Option<LockfileInfo>> {
     let path = root.join("package-lock.json");
     if !path.is_file() {
+        // Fail clearly when another package manager owns the tree — do not
+        // silently look like a "missing npm install" case.
+        for (name, label) in [
+            ("pnpm-lock.yaml", "pnpm"),
+            ("yarn.lock", "Yarn"),
+            ("bun.lockb", "Bun"),
+            ("bun.lock", "Bun"),
+        ] {
+            let alt = root.join(name);
+            if alt.is_file() {
+                return Err(Error::UnsupportedLockfile {
+                    path: alt,
+                    reason: format!(
+                        "{label} lockfile present without package-lock.json; \
+                         Weave currently supports npm package-lock.json only"
+                    ),
+                });
+            }
+        }
         return Ok(None);
     }
 
@@ -93,5 +112,22 @@ mod tests {
         .unwrap();
         let err = detect_lockfile(tmp.path()).unwrap_err();
         assert!(matches!(err, Error::UnsupportedLockfile { .. }));
+    }
+
+    #[test]
+    fn rejects_pnpm_only_projects_clearly() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::write(
+            tmp.path().join("pnpm-lock.yaml"),
+            "lockfileVersion: '9.0'\n",
+        )
+        .unwrap();
+        let err = detect_lockfile(tmp.path()).unwrap_err();
+        match err {
+            Error::UnsupportedLockfile { reason, .. } => {
+                assert!(reason.to_lowercase().contains("pnpm"));
+            }
+            other => panic!("expected UnsupportedLockfile, got {other}"),
+        }
     }
 }

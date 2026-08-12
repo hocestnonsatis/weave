@@ -20,6 +20,44 @@ conditions.**
 | `analyze-corpus` | Graph metrics on pinned lockfiles (no network) |
 | `phase3` | Full Phase 3 pipeline + architectural gate |
 
+### AI-agent parallel validation (Phase 16)
+
+| Command | Purpose |
+|---------|---------|
+| `phase16` | Offline npm/pnpm/Weave parallel env comparison |
+| `phase16 --network` | Separate network class using corpus lockfiles |
+
+Report: [`docs/benchmarks/phase16-ai-agent-report.md`](../docs/benchmarks/phase16-ai-agent-report.md).
+
+### AI-agent scale validation (Phase 17)
+
+| Command | Purpose |
+|---------|---------|
+| `phase17` | Offline scale ladder (80–280 pkgs, parallel 2/4/8/16, high/low overlap) |
+| `phase17 --network` | Separate network class (rimraf / typescript / axios) |
+| `phase17 --quick` | Skip largest offline ladder steps |
+| `phase17 --rerender-json benchmarks/out/phase17/phase17-report.json` | Rebuild markdown from prior JSON |
+
+Report: [`docs/benchmarks/phase17-ai-scale-report.md`](../docs/benchmarks/phase17-ai-scale-report.md).
+
+### Agent-native workflow (Phase 18)
+
+| Command | Purpose |
+|---------|---------|
+| `phase18` | Owned concurrent agent roots + JSON lifecycle vs Phase-17-shaped workload |
+
+Report: [`docs/benchmarks/phase18-agent-workflow-report.md`](../docs/benchmarks/phase18-agent-workflow-report.md).  
+ADR: [`docs/decisions/ADR-0018-agent-native-workflow.md`](../docs/decisions/ADR-0018-agent-native-workflow.md).
+
+### Zero-friction adoption (Phase 19)
+
+| Command | Purpose |
+|---------|---------|
+| `phase19` | Adoption friction measurements + agent help/JSON simulation |
+
+Report: [`docs/benchmarks/phase19-adoption-report.md`](../docs/benchmarks/phase19-adoption-report.md).  
+ADR: [`docs/decisions/ADR-0019-zero-friction-adoption.md`](../docs/decisions/ADR-0019-zero-friction-adoption.md).
+
 Corpus provenance: [`corpus/README.md`](./corpus/README.md).
 
 ## Measurement classes (do not mix)

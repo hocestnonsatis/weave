@@ -1,10 +1,14 @@
-//! Weave benchmark harness (Phase 2–3).
+//! Weave benchmark harness (Phase 2–3, 16–19).
 
 mod analyze;
 mod corpus;
 mod experiments;
 mod fixture;
 mod measure;
+mod phase16;
+mod phase17;
+mod phase18;
+mod phase19;
 mod phase3;
 mod report;
 mod scenarios;
@@ -122,6 +126,93 @@ fn run() -> anyhow::Result<()> {
             println!("{}", include_str!("../../../benchmarks/README.md"));
             Ok(())
         }
+        Commands::Phase16 {
+            network,
+            out_dir,
+            keep_work,
+        } => {
+            let report = phase16::run_phase16(phase16::Phase16Opts { network, keep_work })?;
+            let out_dir = out_dir.unwrap_or_else(|| PathBuf::from("benchmarks/out/phase16"));
+            phase16::write_phase16_outputs(&out_dir, &report)?;
+            let docs = PathBuf::from("docs/benchmarks/phase16-ai-agent-report.md");
+            if let Some(parent) = docs.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            let _ = fs::copy(out_dir.join("phase16-ai-agent-report.md"), &docs);
+            println!("{}", report.verdict);
+            println!(
+                "Wrote {}",
+                out_dir.join("phase16-ai-agent-report.md").display()
+            );
+            println!("Wrote {}", docs.display());
+            Ok(())
+        }
+        Commands::Phase17 {
+            network,
+            quick,
+            out_dir,
+            keep_work,
+            rerender_json,
+        } => {
+            let out_dir = out_dir.unwrap_or_else(|| PathBuf::from("benchmarks/out/phase17"));
+            let report = if let Some(json) = rerender_json {
+                phase17::rerender_from_json(&json, &out_dir)?
+            } else {
+                let report = phase17::run_phase17(phase17::Phase17Opts {
+                    network,
+                    quick,
+                    keep_work,
+                })?;
+                phase17::write_phase17_outputs(&out_dir, &report)?;
+                report
+            };
+            let docs = PathBuf::from("docs/benchmarks/phase17-ai-scale-report.md");
+            if let Some(parent) = docs.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            let _ = fs::copy(out_dir.join("phase17-ai-scale-report.md"), &docs);
+            println!("{}", report.threshold_answer);
+            println!(
+                "Wrote {}",
+                out_dir.join("phase17-ai-scale-report.md").display()
+            );
+            println!("Wrote {}", docs.display());
+            Ok(())
+        }
+        Commands::Phase18 { out_dir, keep_work } => {
+            let report = phase18::run_phase18(phase18::Phase18Opts { keep_work })?;
+            let out_dir = out_dir.unwrap_or_else(|| PathBuf::from("benchmarks/out/phase18"));
+            phase18::write_phase18_outputs(&out_dir, &report)?;
+            let docs = PathBuf::from("docs/benchmarks/phase18-agent-workflow-report.md");
+            if let Some(parent) = docs.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            let _ = fs::copy(out_dir.join("phase18-agent-workflow-report.md"), &docs);
+            println!("{}", report.workflow_summary);
+            println!(
+                "Wrote {}",
+                out_dir.join("phase18-agent-workflow-report.md").display()
+            );
+            println!("Wrote {}", docs.display());
+            Ok(())
+        }
+        Commands::Phase19 { out_dir, keep_work } => {
+            let report = phase19::run_phase19(phase19::Phase19Opts { keep_work })?;
+            let out_dir = out_dir.unwrap_or_else(|| PathBuf::from("benchmarks/out/phase19"));
+            phase19::write_phase19_outputs(&out_dir, &report)?;
+            let docs = PathBuf::from("docs/benchmarks/phase19-adoption-report.md");
+            if let Some(parent) = docs.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            let _ = fs::copy(out_dir.join("phase19-adoption-report.md"), &docs);
+            println!("{}", report.agent_substrate_verdict);
+            println!(
+                "Wrote {}",
+                out_dir.join("phase19-adoption-report.md").display()
+            );
+            println!("Wrote {}", docs.display());
+            Ok(())
+        }
     }
 }
 
@@ -232,4 +323,43 @@ enum Commands {
     },
     /// Print benchmark methodology
     Methodology,
+    /// Phase 16: AI-agent parallel environment validation (npm/pnpm/weave)
+    Phase16 {
+        /// Include network-dependent corpus installs (separate measurement class)
+        #[arg(long)]
+        network: bool,
+        #[arg(long)]
+        out_dir: Option<PathBuf>,
+        #[arg(long)]
+        keep_work: bool,
+    },
+    /// Phase 17: AI-agent scale ladder (larger trees, parallel 16, overlap extremes)
+    Phase17 {
+        #[arg(long)]
+        network: bool,
+        /// Skip largest offline workloads
+        #[arg(long)]
+        quick: bool,
+        #[arg(long)]
+        out_dir: Option<PathBuf>,
+        #[arg(long)]
+        keep_work: bool,
+        /// Rebuild markdown from an existing phase17-report.json (no re-bench)
+        #[arg(long)]
+        rerender_json: Option<PathBuf>,
+    },
+    /// Phase 18: agent-native workflow (owned envs, JSON lifecycle, concurrent agents)
+    Phase18 {
+        #[arg(long)]
+        out_dir: Option<PathBuf>,
+        #[arg(long)]
+        keep_work: bool,
+    },
+    /// Phase 19: zero-friction adoption (init/guide/recover + agent-sim)
+    Phase19 {
+        #[arg(long)]
+        out_dir: Option<PathBuf>,
+        #[arg(long)]
+        keep_work: bool,
+    },
 }

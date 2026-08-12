@@ -6,12 +6,13 @@ use anyhow::Context;
 use clap::{Parser, Subcommand};
 use weave_core::Error as WeaveError;
 use weave_engine::{
-    apply_policy_pack, doctor_project, env_create, env_list, exec_plan_with_adoption,
-    exec_run_sandboxed, gc_project_with_options, hash_verified_artifact, init_project,
-    load_policy_pack, materialize_project_with_options, merge_suggestion_into_config,
-    project_status, render_adoption_text, suggest_execution_policy_with_prebuilds,
-    switch_project_with_options, DoctorSeverity, ExecRunRequest, GcOptions, HashArtifactRequest,
-    PackageDiscovery, ProjectConfig, SwitchOptions,
+    adoption_guide, apply_policy_pack, doctor_project, env_create_with_opts, env_list_entries,
+    env_prune, env_remove, exec_plan_with_adoption, exec_run_sandboxed, gc_project_with_options,
+    hash_verified_artifact, init_project, load_policy_pack, materialize_project_with_options,
+    merge_suggestion_into_config, project_status, recover_project, render_adoption_guide,
+    render_adoption_text, suggest_execution_policy_with_prebuilds, switch_project_with_options,
+    DoctorSeverity, EnvCreateOpts, EnvPruneOpts, ExecRunRequest, GcOptions, HashArtifactRequest,
+    PackageDiscovery, ProjectConfig, RecoverOpts, SwitchOptions,
 };
 
 fn main() -> ExitCode {
@@ -29,16 +30,56 @@ fn run() -> anyhow::Result<()> {
     let cwd = std::env::current_dir().context("failed to read current directory")?;
 
     match cli.command {
-        Commands::Init => {
+        Commands::Init { json } => {
             let outcome = init_project(&cwd).map_err(anyhow::Error::new)?;
-            println!("Initialized Weave in {}", outcome.root.display());
-            println!("  metadata: {}", outcome.weave_dir.display());
-            println!("  store:    {}", outcome.store_dir.display());
-            println!();
-            println!("Next:");
-            println!("  1. weave doctor     # adoption readiness");
-            println!("  2. weave switch     # materialize node_modules (no scripts)");
-            println!("  3. docs/adoption.md # if native/lifecycle packages need policy");
+            if json {
+                println!("{}", serde_json::to_string_pretty(&outcome)?);
+            } else if outcome.created {
+                println!("Initialized Weave in {}", outcome.root.display());
+                println!("  metadata: {}", outcome.weave_dir.display());
+                println!("  store:    {}", outcome.store_dir.display());
+                println!();
+                println!("Next:");
+                for step in &outcome.next_steps {
+                    println!("  {step}");
+                }
+            } else {
+                println!(
+                    "Weave already initialized in {} (idempotent no-op)",
+                    outcome.root.display()
+                );
+                println!("Next:");
+                for step in &outcome.next_steps {
+                    println!("  {step}");
+                }
+            }
+            Ok(())
+        }
+        Commands::Guide { json } => {
+            let guide = adoption_guide(Some(cwd.as_path()));
+            if json {
+                println!("{}", serde_json::to_string_pretty(&guide)?);
+            } else {
+                print!("{}", render_adoption_guide(&guide));
+            }
+            Ok(())
+        }
+        Commands::Recover { json, purge_backup } => {
+            let report =
+                recover_project(&cwd, &RecoverOpts { purge_backup }).map_err(anyhow::Error::new)?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&report)?);
+            } else {
+                println!("Weave recover — {}", report.root.display());
+                for action in &report.actions {
+                    println!("  {action}");
+                }
+                println!();
+                println!("Next:");
+                for step in &report.next_steps {
+                    println!("  {step}");
+                }
+            }
             Ok(())
         }
         Commands::Status { json } => {
@@ -50,138 +91,228 @@ fn run() -> anyhow::Result<()> {
             }
             Ok(())
         }
-        Commands::Env { command } => match command {
-            EnvCommands::List => {
-                let envs = env_list(&cwd).map_err(anyhow::Error::new)?;
-                if envs.is_empty() {
-                    println!("No environments yet. Run `weave env create`.");
-                } else {
-                    for env in envs {
-                        let label = env.label.as_deref().unwrap_or("-");
-                        println!(
-                            "{}  pkgs={}  label={}  graph={}",
-                            &env.id.as_str()[..16.min(env.id.as_str().len())],
-                            env.package_count,
-                            label,
-                            &env.graph_identity.as_str()
-                                [..16.min(env.graph_identity.as_str().len())]
-                        );
+        Commands::Env { command } => {
+            match command {
+                EnvCommands::List { json, owner } => {
+                    let entries =
+                        env_list_entries(&cwd, owner.as_deref()).map_err(anyhow::Error::new)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&entries)?);
+                    } else if entries.is_empty() {
+                        println!("No environments yet. Run `weave env create`.");
+                    } else {
+                        for env in entries {
+                            let label = env.label.as_deref().unwrap_or("-");
+                            let owner = env.owner.as_deref().unwrap_or("-");
+                            let active = if env.active { "active" } else { "-" };
+                            println!(
+                                "{}  pkgs={}  label={}  owner={}  {}  graph={}",
+                                &env.id[..16.min(env.id.len())],
+                                env.package_count,
+                                label,
+                                owner,
+                                active,
+                                &env.graph_identity[..16.min(env.graph_identity.len())]
+                            );
+                        }
                     }
+                    Ok(())
                 }
-                Ok(())
-            }
-            EnvCommands::Create => {
-                let record = env_create(&cwd).map_err(anyhow::Error::new)?;
-                println!("Created environment {}", record.id);
-                println!("  packages: {}", record.package_count);
-                println!(
-                    "  platform: {}/{}",
-                    record.platform.os, record.platform.arch
-                );
-                if let Some(label) = &record.label {
-                    println!("  label:    {label}");
+                EnvCommands::Create { json, label, owner } => {
+                    let record = env_create_with_opts(&cwd, &EnvCreateOpts { label, owner })
+                        .map_err(anyhow::Error::new)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&record)?);
+                    } else {
+                        println!("Created environment {}", record.id);
+                        println!("  packages: {}", record.package_count);
+                        println!(
+                            "  platform: {}/{}",
+                            record.platform.os, record.platform.arch
+                        );
+                        if let Some(label) = &record.label {
+                            println!("  label:    {label}");
+                        }
+                        if let Some(owner) = &record.owner {
+                            println!("  owner:    {owner}");
+                        }
+                    }
+                    Ok(())
                 }
-                Ok(())
+                EnvCommands::Remove { target, json } => {
+                    let report = env_remove(&cwd, &target).map_err(anyhow::Error::new)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&report)?);
+                    } else {
+                        println!("Removed environment {}", report.removed_id);
+                        if let Some(owner) = &report.owner {
+                            println!("  owner: {owner}");
+                        }
+                    }
+                    Ok(())
+                }
+                EnvCommands::Prune {
+                    owner,
+                    older_than_secs,
+                    dry_run,
+                    json,
+                } => {
+                    let report = env_prune(
+                        &cwd,
+                        &EnvPruneOpts {
+                            owner,
+                            older_than_secs,
+                            dry_run,
+                        },
+                    )
+                    .map_err(anyhow::Error::new)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&report)?);
+                    } else {
+                        let mode = if report.dry_run { "dry-run" } else { "prune" };
+                        println!("Environment prune ({mode}) owner={}", report.owner);
+                        println!("  removed: {}", report.removed_ids.len());
+                        for id in &report.removed_ids {
+                            println!("    - {id}");
+                        }
+                        if let Some(active) = &report.skipped_active {
+                            println!("  skipped active: {active}");
+                        }
+                        if report.skipped_too_recent > 0 {
+                            println!("  skipped too recent: {}", report.skipped_too_recent);
+                        }
+                        println!();
+                        println!("Hint: run `weave gc` afterward to reclaim unreachable store artifacts.");
+                    }
+                    Ok(())
+                }
             }
-        },
-        Commands::Switch { target, with_exec } => {
-            let options = SwitchOptions { with_exec };
+        }
+        Commands::Switch {
+            target,
+            with_exec,
+            json,
+            owner,
+        } => {
+            let options = SwitchOptions { with_exec, owner };
             let outcome = switch_project_with_options(&cwd, target.as_deref(), &options)
                 .map_err(anyhow::Error::new)?;
-            println!("Environment activated: {}", outcome.prepare.environment.id);
-            println!("  packages:  {}", outcome.prepare.environment.package_count);
-            println!(
-                "  fetched:   {}  reused: {}",
-                outcome.prepare.fetched_artifacts, outcome.prepare.reused_artifacts
-            );
-            println!(
-                "  packages:  {}  cache_hit/miss: {}/{}",
-                outcome.prepare.materialize.packages_materialized,
-                outcome.prepare.materialize.cache_hits,
-                outcome.prepare.materialize.cache_misses
-            );
-            println!(
-                "  files:     {} hardlink  {} copy",
-                outcome.prepare.materialize.hardlinked_files,
-                outcome.prepare.materialize.copied_files
-            );
-            if with_exec {
-                let ex = &outcome.prepare.execution;
-                println!(
-                    "  exec:      considered={} cache_hits={} executed={} applied={}",
-                    ex.packages_considered, ex.cache_hits, ex.executed, ex.applied
-                );
-            }
-            if outcome.activation.replaced_existing {
-                println!("  replaced existing node_modules");
+            if json {
+                println!("{}", serde_json::to_string_pretty(&switch_json(&outcome))?);
             } else {
-                println!("  created node_modules");
+                println!("Environment activated: {}", outcome.prepare.environment.id);
+                println!("  packages:  {}", outcome.prepare.environment.package_count);
+                if let Some(owner) = &outcome.prepare.environment.owner {
+                    println!("  owner:     {owner}");
+                }
+                println!(
+                    "  fetched:   {}  reused: {}",
+                    outcome.prepare.fetched_artifacts, outcome.prepare.reused_artifacts
+                );
+                println!(
+                    "  packages:  {}  cache_hit/miss: {}/{}",
+                    outcome.prepare.materialize.packages_materialized,
+                    outcome.prepare.materialize.cache_hits,
+                    outcome.prepare.materialize.cache_misses
+                );
+                println!(
+                    "  files:     {} hardlink  {} copy",
+                    outcome.prepare.materialize.hardlinked_files,
+                    outcome.prepare.materialize.copied_files
+                );
+                if with_exec {
+                    let ex = &outcome.prepare.execution;
+                    println!(
+                        "  exec:      considered={} cache_hits={} executed={} applied={}",
+                        ex.packages_considered, ex.cache_hits, ex.executed, ex.applied
+                    );
+                }
+                if outcome.activation.replaced_existing {
+                    println!("  replaced existing node_modules");
+                } else {
+                    println!("  created node_modules");
+                }
             }
             Ok(())
         }
-        Commands::Materialize { with_exec } => {
-            let options = SwitchOptions { with_exec };
+        Commands::Materialize {
+            with_exec,
+            json,
+            owner,
+        } => {
+            let options = SwitchOptions { with_exec, owner };
             let outcome =
                 materialize_project_with_options(&cwd, &options).map_err(anyhow::Error::new)?;
-            println!("Materialized candidate for {}", outcome.environment.id);
-            println!("  candidate: {}", outcome.candidate_root.display());
-            println!(
-                "  packages:  {}  cache_hit/miss: {}/{}",
-                outcome.materialize.packages_materialized,
-                outcome.materialize.cache_hits,
-                outcome.materialize.cache_misses
-            );
-            println!(
-                "  files:     {} hardlink  {} copy",
-                outcome.materialize.hardlinked_files, outcome.materialize.copied_files
-            );
-            println!(
-                "  fetched:   {}  reused: {}",
-                outcome.fetched_artifacts, outcome.reused_artifacts
-            );
-            if with_exec {
-                let ex = &outcome.execution;
+            if json {
                 println!(
-                    "  exec:      considered={} cache_hits={} executed={} applied={}",
-                    ex.packages_considered, ex.cache_hits, ex.executed, ex.applied
+                    "{}",
+                    serde_json::to_string_pretty(&materialize_json(&outcome))?
                 );
+            } else {
+                println!("Materialized candidate for {}", outcome.environment.id);
+                println!("  candidate: {}", outcome.candidate_root.display());
+                println!(
+                    "  packages:  {}  cache_hit/miss: {}/{}",
+                    outcome.materialize.packages_materialized,
+                    outcome.materialize.cache_hits,
+                    outcome.materialize.cache_misses
+                );
+                println!(
+                    "  files:     {} hardlink  {} copy",
+                    outcome.materialize.hardlinked_files, outcome.materialize.copied_files
+                );
+                println!(
+                    "  fetched:   {}  reused: {}",
+                    outcome.fetched_artifacts, outcome.reused_artifacts
+                );
+                if with_exec {
+                    let ex = &outcome.execution;
+                    println!(
+                        "  exec:      considered={} cache_hits={} executed={} applied={}",
+                        ex.packages_considered, ex.cache_hits, ex.executed, ex.applied
+                    );
+                }
+                println!();
+                println!("Candidate is not active. Run `weave switch` to activate.");
             }
-            println!();
-            println!("Candidate is not active. Run `weave switch` to activate.");
             Ok(())
         }
-        Commands::Gc { dry_run } => {
+        Commands::Gc { dry_run, json } => {
             let report = gc_project_with_options(&cwd, &GcOptions { dry_run })
                 .map_err(anyhow::Error::new)?;
-            let mode = if report.dry_run {
-                "dry-run"
+            if json {
+                println!("{}", serde_json::to_string_pretty(&report)?);
             } else {
-                "reachability"
-            };
-            println!("Garbage collection ({mode})");
-            println!("  store:                 {}", report.store_root.display());
-            println!("  root projects:         {}", report.root_projects);
-            println!("  root artifacts:        {}", report.root_artifacts);
-            println!("  object temps:          {}", report.removed_object_temps);
-            println!(
-                "  incomplete unpacked:   {}",
-                report.removed_unpacked_incomplete
-            );
-            println!(
-                "  orphan ready marks:    {}",
-                report.removed_unpacked_markers
-            );
-            println!(
-                "  unreachable objects:   {}",
-                report.removed_unreachable_objects
-            );
-            println!(
-                "  unreachable unpacked:  {}",
-                report.removed_unreachable_unpacked
-            );
-            if report.dry_run {
-                println!();
-                println!("Dry run: unreachable objects were counted, not deleted.");
+                let mode = if report.dry_run {
+                    "dry-run"
+                } else {
+                    "reachability"
+                };
+                println!("Garbage collection ({mode})");
+                println!("  store:                 {}", report.store_root.display());
+                println!("  root projects:         {}", report.root_projects);
+                println!("  root artifacts:        {}", report.root_artifacts);
+                println!("  object temps:          {}", report.removed_object_temps);
+                println!(
+                    "  incomplete unpacked:   {}",
+                    report.removed_unpacked_incomplete
+                );
+                println!(
+                    "  orphan ready marks:    {}",
+                    report.removed_unpacked_markers
+                );
+                println!(
+                    "  unreachable objects:   {}",
+                    report.removed_unreachable_objects
+                );
+                println!(
+                    "  unreachable unpacked:  {}",
+                    report.removed_unreachable_unpacked
+                );
+                if report.dry_run {
+                    println!();
+                    println!("Dry run: unreachable objects were counted, not deleted.");
+                }
             }
             Ok(())
         }
@@ -608,10 +739,95 @@ fn print_status_human(status: &weave_core::ProjectStatus) {
     println!();
     println!("Environments");
     println!("  known: {}", status.environment.known_count);
+    for env in &status.environment.environments {
+        let mark = if env.active { "*" } else { " " };
+        let owner = env.owner.as_deref().unwrap_or("-");
+        let label = env.label.as_deref().unwrap_or("-");
+        println!(
+            "  {mark} {}  label={label}  owner={owner}  pkgs={}",
+            &env.id[..12.min(env.id.len())],
+            env.package_count
+        );
+    }
+    if !status.next_steps.is_empty() {
+        println!();
+        println!("Next steps");
+        for step in &status.next_steps {
+            println!("  - {step}");
+        }
+    }
     if !status.initialized {
         println!();
-        println!("Hint: run `weave init` to create .weave/ metadata.");
+        println!("Hint: run `weave guide` then `weave init --json`.");
     }
+}
+
+fn switch_json(outcome: &weave_engine::SwitchOutcome) -> serde_json::Value {
+    let env = &outcome.prepare.environment;
+    let m = &outcome.prepare.materialize;
+    serde_json::json!({
+        "ok": true,
+        "operation": "switch",
+        "environment": {
+            "id": env.id.as_str(),
+            "label": env.label,
+            "owner": env.owner,
+            "package_count": env.package_count,
+            "graph_identity": env.graph_identity.as_str(),
+            "created_at": env.created_at,
+            "last_activated_at": env.last_activated_at,
+        },
+        "acquire": {
+            "fetched": outcome.prepare.fetched_artifacts,
+            "reused": outcome.prepare.reused_artifacts,
+        },
+        "materialize": {
+            "packages": m.packages_materialized,
+            "cache_hits": m.cache_hits,
+            "cache_misses": m.cache_misses,
+            "hardlinked_files": m.hardlinked_files,
+            "copied_files": m.copied_files,
+        },
+        "activation": {
+            "node_modules": outcome.activation.node_modules,
+            "replaced_existing": outcome.activation.replaced_existing,
+        },
+        "execution": {
+            "considered": outcome.prepare.execution.packages_considered,
+            "cache_hits": outcome.prepare.execution.cache_hits,
+            "executed": outcome.prepare.execution.executed,
+            "applied": outcome.prepare.execution.applied,
+        }
+    })
+}
+
+fn materialize_json(outcome: &weave_engine::PrepareOutcome) -> serde_json::Value {
+    let env = &outcome.environment;
+    let m = &outcome.materialize;
+    serde_json::json!({
+        "ok": true,
+        "operation": "materialize",
+        "activated": false,
+        "candidate_root": outcome.candidate_root,
+        "environment": {
+            "id": env.id.as_str(),
+            "label": env.label,
+            "owner": env.owner,
+            "package_count": env.package_count,
+            "graph_identity": env.graph_identity.as_str(),
+        },
+        "acquire": {
+            "fetched": outcome.fetched_artifacts,
+            "reused": outcome.reused_artifacts,
+        },
+        "materialize": {
+            "packages": m.packages_materialized,
+            "cache_hits": m.cache_hits,
+            "cache_misses": m.cache_misses,
+            "hardlinked_files": m.hardlinked_files,
+            "copied_files": m.copied_files,
+        }
+    })
 }
 
 fn print_error(err: &anyhow::Error) {
@@ -637,19 +853,26 @@ fn recovery_hint(err: &WeaveError) -> Option<String> {
             "Preserved state: none changed.\nRetry: add package.json at the repository root."
         }
         WeaveError::MissingLockfile { .. } => {
-            "Preserved state: none changed.\nRetry: npm install (or npm i --package-lock-only), then weave init."
+            "Preserved state: none changed.\n\
+             Retry: npm install (or npm i --package-lock-only), then weave init --json.\n\
+             Guide: weave guide --json"
+        }
+        WeaveError::UnsupportedLockfile { .. } => {
+            "Preserved state: none changed.\n\
+             Weave supports npm package-lock.json only and will not convert Yarn/pnpm/Bun lockfiles.\n\
+             Stay on your current package manager, or add package-lock.json deliberately.\n\
+             Guide: weave guide --json"
         }
         WeaveError::AlreadyInitialized { .. } => {
-            "Preserved state: existing .weave/ left untouched.\nNext: weave doctor && weave switch"
+            "Preserved state: existing .weave/ left untouched.\n\
+             Note: `weave init` is idempotent — re-run is a no-op.\n\
+             Next: weave doctor --json && weave switch --json"
         }
         WeaveError::NotInitialized { .. } => {
-            "Preserved state: none changed.\nRetry: weave init\nDiagnostic: weave status"
+            "Preserved state: none changed.\nRetry: weave init --json\nDiagnostic: weave status --json\nGuide: weave guide --json"
         }
         WeaveError::NotImplemented(_) => {
             "Preserved state: none changed.\nThis command will arrive in a later milestone."
-        }
-        WeaveError::UnsupportedLockfile { .. } => {
-            "Preserved state: none changed.\nWeave currently supports npm package-lock.json only."
         }
         WeaveError::IntegrityCheckFailed { .. } => {
             "Preserved state: previous environment left unchanged.\n\
@@ -702,7 +925,8 @@ fn recovery_hint(err: &WeaveError) -> Option<String> {
                   Plain `weave switch` never runs lifecycle scripts and never opens network\n\
                   for install scripts. Experimental exec/prebuild features are opt-in only\n\
                   (execution.enabled + --with-exec) and are never silently enabled.\n\
-                  Docs: docs/adoption.md · docs/supported-platforms.md · docs/security.md"
+                  Start here: `weave guide --json` (no architecture knowledge required).\n\
+                  Docs: docs/agent-quickstart.md · docs/adoption.md · docs/security.md"
 )]
 struct Cli {
     #[command(subcommand)]
@@ -711,10 +935,29 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Initialize .weave/ metadata (requires package-lock.json)
-    Init,
+    /// Print the minimal adopt/switch/recover recipe (agent-friendly)
+    Guide {
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
+    },
+    /// Initialize .weave/ metadata (idempotent; requires package-lock.json)
+    Init {
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
+    },
     /// Show Git, dependency, and environment status
     Status {
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
+    },
+    /// Clear leftover candidate / dangling active after interrupted switch
+    Recover {
+        /// Also delete leftover `.weave/node_modules.bak` (never touches live node_modules)
+        #[arg(long)]
+        purge_backup: bool,
         /// Emit machine-readable JSON
         #[arg(long)]
         json: bool,
@@ -731,18 +974,33 @@ enum Commands {
         /// EXPERIMENTAL: sandboxed execution against the candidate (requires execution.enabled)
         #[arg(long)]
         with_exec: bool,
+        /// Explicit owner/session id stamped on the environment (never auto-detected)
+        #[arg(long)]
+        owner: Option<String>,
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
     },
     /// Materialize a candidate environment without activating it
     Materialize {
         /// EXPERIMENTAL: sandboxed execution against the candidate (requires execution.enabled)
         #[arg(long)]
         with_exec: bool,
+        /// Explicit owner/session id stamped on the environment (never auto-detected)
+        #[arg(long)]
+        owner: Option<String>,
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
     },
     /// Garbage-collect unreachable store artifacts (and incomplete temps)
     Gc {
         /// Count unreachable artifacts without deleting them
         #[arg(long)]
         dry_run: bool,
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
     },
     /// Diagnose adoption readiness and project health
     Doctor {
@@ -760,9 +1018,49 @@ enum Commands {
 #[derive(Debug, Subcommand)]
 enum EnvCommands {
     /// List known environments
-    List,
+    List {
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
+        /// Filter by exact owner/session id
+        #[arg(long)]
+        owner: Option<String>,
+    },
     /// Create an environment from the current lockfile
-    Create,
+    Create {
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
+        /// Override label (default: current git branch)
+        #[arg(long)]
+        label: Option<String>,
+        /// Explicit owner/session id (never auto-detected)
+        #[arg(long)]
+        owner: Option<String>,
+    },
+    /// Remove a non-active environment record (never mutates another env's node_modules)
+    Remove {
+        /// Environment id, id prefix, or label
+        target: String,
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
+    },
+    /// Prune abandoned agent-owned environment records (requires --owner)
+    Prune {
+        /// Exact owner/session id to prune (required; never inferred)
+        #[arg(long)]
+        owner: String,
+        /// Only prune records older than this many seconds
+        #[arg(long)]
+        older_than_secs: Option<u64>,
+        /// Report matches without deleting
+        #[arg(long)]
+        dry_run: bool,
+        /// Emit machine-readable JSON
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[derive(Debug, Subcommand)]

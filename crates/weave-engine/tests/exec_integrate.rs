@@ -221,7 +221,10 @@ fn with_exec_rejected_when_config_disabled() {
         &h.project,
         None,
         &h.source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .unwrap_err();
     assert!(
@@ -279,7 +282,10 @@ fn cache_hit_applies_declared_output_without_bwrap() {
         &h.project,
         None,
         &h.source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .expect("cache hit switch");
     assert_eq!(again.prepare.execution.packages_considered, 1);
@@ -397,7 +403,10 @@ fn failed_execution_leaves_active_untouched() {
         &h.project,
         None,
         &h.source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .unwrap_err();
     assert!(
@@ -436,7 +445,10 @@ fn first_execution_and_declared_output_activation() {
         &h.project,
         None,
         &h.source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .expect("first with-exec");
     assert_eq!(first.prepare.execution.executed, 1);
@@ -453,7 +465,10 @@ fn first_execution_and_declared_output_activation() {
         &h.project,
         None,
         &h.source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .expect("cache hit with-exec");
     assert_eq!(second.prepare.execution.cache_hits, 1);
@@ -515,7 +530,10 @@ fn failed_script_leaves_active_untouched() {
         &h.project,
         None,
         &source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .unwrap_err();
     assert!(err.to_string().contains("failed"), "{err}");

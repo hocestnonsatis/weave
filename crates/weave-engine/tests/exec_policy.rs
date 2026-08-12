@@ -156,7 +156,10 @@ fn project_plan_distinguishes_discovered_from_allowed() {
         &project,
         None,
         &source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .unwrap_err();
     assert!(err.to_string().contains("--with-exec") || err.to_string().contains("enabled"));

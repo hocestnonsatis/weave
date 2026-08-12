@@ -28,5 +28,6 @@ pub use paths::{
 pub use platform::{matches_constraint, platform_fit, HostPlatform, PlatformFit};
 pub use project::{LockfileKind, ProjectDiscovery, ProjectLayout};
 pub use status::{
-    DependencyStatus, EnvironmentStatus, GitStatus, MaterializationStatus, ProjectStatus,
+    DependencyStatus, EnvironmentStatus, EnvironmentSummary, GitStatus, MaterializationStatus,
+    ProjectStatus,
 };

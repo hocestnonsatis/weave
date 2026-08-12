@@ -1,45 +1,46 @@
 ---
-description: Enforce WEAVE.md milestone order, DoD, and verification discipline
+description: Enforce WEAVE.md milestone order for charter work; defer to post-0.1 rule afterward
 alwaysApply: true
 ---
 
 # Milestone Discipline
 
-`WEAVE.md` is the authoritative execution plan (milestones, non-goals, Definition of Done).
+`WEAVE.md` is the authoritative charter for **pre-0.1 / milestone plan** work.
 
-## Before coding
+## Post-0.1 (current default)
+
+Charter milestones through Phase 19 are complete. For new work, follow
+`.cursor/rules/post-0.1-development.mdc` and ADR-0020: classify as bug /
+security / recovery / regression / adoption-blocker vs **new feature**. Do **not**
+autonomously open the next “feature phase.”
+
+## Before coding (legacy milestone track)
+
+Only when the user explicitly resumes a named WEAVE.md milestone:
 
 1. Identify the **current milestone**.
-2. Restate its **Definition of Done** (from that milestone + §46 when relevant).
+2. Restate its **Definition of Done**.
 3. Implement only what that milestone requires.
 
-## Ordering
+## Ordering (legacy milestone track)
 
 - Complete milestones **in WEAVE.md order** unless the user explicitly changes the plan.
-- Do **not** skip ahead to speculative future features (FUSE, daemon, cross-language, etc.) because they are interesting.
-- Do **not** mark a milestone complete unless implementation **and** required tests meet its DoD.
+- Do **not** skip ahead to speculative future features (FUSE, daemon, cross-language, etc.).
 
 ## Continuation
 
-When a milestone’s DoD is met, **immediately start the next milestone** in the same session when practical. If the next milestone is clearly specified, do **not** ask for confirmation.
+**Pre-0.1 charter only:** when a milestone’s DoD is met, continue the next
+defined milestone without asking.
 
-## Open architectural questions
-
-Questions marked open in `WEAVE.md` (e.g. Q1–Q5) are **research items**, not permission gates. Do not stall unrelated milestone work waiting on them. Prefer small, reversible choices until evidence forces a larger architectural call; record lasting choices in `docs/decisions/`.
+**Post-0.1:** do not continue into new features; stop or file a design/evidence
+report for category 6.
 
 ## After implementation
 
-Run the project’s required checks for the touched work, typically:
-
-```text
-cargo fmt
-cargo check
-cargo test
-cargo clippy
-```
-
-plus any milestone-specific integration/fixture tests.
+Run the project’s required checks for the touched work (fmt, check, test, clippy)
+plus any relevant integration tests.
 
 ## When blocked
 
-Report the **exact technical blocker** and why it cannot be resolved safely without user input. Do not invent fake progress or silently weaken correctness guarantees.
+Report the **exact technical blocker**. Do not invent fake progress or silently
+weaken correctness guarantees.

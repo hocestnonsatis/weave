@@ -93,5 +93,16 @@ fn read_provenance(path: &Path) -> Option<Provenance> {
 
 /// Default corpus path relative to cwd / workspace.
 pub fn default_corpus_root() -> PathBuf {
+    let candidates = [
+        PathBuf::from("benchmarks/corpus"),
+        PathBuf::from("../benchmarks/corpus"),
+        PathBuf::from("../../benchmarks/corpus"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../benchmarks/corpus"),
+    ];
+    for c in candidates {
+        if c.join("MANIFEST.json").is_file() {
+            return c;
+        }
+    }
     PathBuf::from("benchmarks/corpus")
 }

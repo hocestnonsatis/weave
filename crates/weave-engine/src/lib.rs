@@ -15,12 +15,14 @@ mod exec;
 mod exec_discover;
 mod exec_plan;
 mod gc;
+mod guide;
 mod hash_artifact;
 mod init;
 mod policy_pack;
 mod prebuild_fetch;
 mod prebuild_resolve;
 mod project;
+mod recover;
 mod registry;
 mod status;
 mod switch;
@@ -41,9 +43,14 @@ pub use config::{
     ExecutionConfig, PrebuildConfig, PrebuildFetchSpec, ProjectConfig, WEAVE_CONFIG_VERSION,
 };
 pub use doctor::{doctor_project, DoctorFinding, DoctorReport, DoctorSeverity};
-pub use env_cmd::{env_create, env_list};
+pub use env_cmd::{
+    env_create, env_create_with_opts, env_list, env_list_entries, env_list_filtered, env_prune,
+    env_remove, env_show, EnvCreateOpts, EnvListEntry, EnvPruneOpts, EnvPruneReport,
+    EnvRemoveReport,
+};
 pub use environment::{
-    create_environment, EnvironmentId, EnvironmentRecord, EnvironmentStore, PlatformIdentity,
+    create_environment, create_environment_with_opts, CreateEnvironmentOpts, EnvironmentId,
+    EnvironmentRecord, EnvironmentStore, PlatformIdentity,
 };
 pub use exec::{
     apply_sealed_outputs, build_exec_identity, bwrap_available, bwrap_bin, digest_tree,
@@ -67,6 +74,7 @@ pub use exec_plan::{
 pub use gc::{
     gc_project, gc_project_with_options, gc_store, gc_store_with_roots, GcOptions, GcReport,
 };
+pub use guide::{adoption_guide, render_adoption_guide, AdoptionGuide};
 pub use hash_artifact::{hash_verified_artifact, HashArtifactReport, HashArtifactRequest};
 pub use init::{init_project, InitOutcome};
 pub use policy_pack::{
@@ -85,6 +93,7 @@ pub use prebuild_resolve::{
     PrebuildPatternKind, PrebuildResolveStatus, SuggestedPrebuildFetch,
 };
 pub use project::discover_project;
+pub use recover::{recover_project, RecoverOpts, RecoverReport};
 pub use status::project_status;
 pub use switch::{
     materialize_project, materialize_project_with_options, materialize_project_with_source,

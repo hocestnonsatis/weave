@@ -213,7 +213,10 @@ fn with_exec_without_enable_leaves_tree_untouched_on_failure() {
         &project,
         None,
         &source,
-        &SwitchOptions { with_exec: true },
+        &SwitchOptions {
+            with_exec: true,
+            owner: None,
+        },
     )
     .unwrap_err();
     assert!(

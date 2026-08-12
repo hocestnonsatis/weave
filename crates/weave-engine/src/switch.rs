@@ -17,7 +17,8 @@ use weave_store::{ArtifactId, ContentStore};
 use crate::acquire::{prepare_artifacts_for_platform, ArtifactSource, DefaultArtifactSource};
 use crate::config::ProjectConfig;
 use crate::environment::{
-    create_environment, EnvironmentId, EnvironmentRecord, EnvironmentStore, PlatformIdentity,
+    create_environment_with_opts, CreateEnvironmentOpts, EnvironmentId, EnvironmentRecord,
+    EnvironmentStore, PlatformIdentity,
 };
 use crate::exec::{integrate_execution_into_candidate, ExecIntegrateReport};
 use crate::project::discover_project;
@@ -31,6 +32,9 @@ pub struct SwitchOptions {
     /// Requires `[execution] enabled = true` in `.weave/config.toml`. Plain
     /// `weave switch` keeps this false — execution stays off.
     pub with_exec: bool,
+    /// Optional explicit owner/session stamped onto the environment record.
+    /// Never inferred — callers (agents) must pass it deliberately.
+    pub owner: Option<String>,
 }
 
 /// Outcome of preparing (acquiring + materializing) an environment candidate.
@@ -141,7 +145,11 @@ pub fn switch_project_with_source_options<S: ArtifactSource>(
     let plan = MaterializationPlan::from_graph_for_platform(&ctx.graph, &artifacts, &host);
     validate_candidate(&plan, &prepare.candidate_root)?;
     let activation = activate_candidate(&ctx.root)?;
-    EnvironmentStore::open(&ctx.root).set_active(&prepare.environment.id)?;
+    let store = EnvironmentStore::open(&ctx.root);
+    store.set_active(&prepare.environment.id)?;
+    let environment = store.mark_activated(&prepare.environment.id)?;
+    let mut prepare = prepare;
+    prepare.environment = environment;
     Ok(SwitchOutcome {
         prepare,
         activation,
@@ -252,7 +260,15 @@ impl SwitchContext {
         let label = weave_git::GitRepository::inspect(&self.root)
             .ok()
             .and_then(|r| r.branch);
-        let mut record = create_environment(&self.root, &self.graph, &artifacts, label)?;
+        let mut record = create_environment_with_opts(
+            &self.root,
+            &self.graph,
+            &artifacts,
+            CreateEnvironmentOpts {
+                label,
+                owner: options.owner.clone(),
+            },
+        )?;
         record.artifacts = artifacts
             .iter()
             .map(|(k, v)| (k.as_str().to_owned(), v.to_string()))

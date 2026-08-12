@@ -4,14 +4,15 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+use serde::Serialize;
 use weave_core::{Error, WEAVE_CONFIG, WEAVE_DIR, WEAVE_ENVIRONMENTS_DIR, WEAVE_METADATA_DIR};
 use weave_store::{default_store_dir, ensure_store_layout};
 
 use crate::config::ProjectConfig;
 use crate::project::discover_project;
 
-/// Result of a successful `weave init`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// Result of a successful `weave init` (idempotent).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct InitOutcome {
     /// Project root that was initialized.
     pub root: PathBuf,
@@ -21,18 +22,21 @@ pub struct InitOutcome {
     pub store_dir: PathBuf,
     /// Whether a supported lockfile was present.
     pub lockfile_present: bool,
+    /// True when this call created `.weave/` for the first time.
+    pub created: bool,
+    /// Suggested next CLI commands (agent-friendly).
+    pub next_steps: Vec<String>,
 }
 
 /// Initialize Weave metadata for the project containing `start`.
+///
+/// Idempotent: if already initialized, returns success with `created = false`
+/// and does not rewrite `config.toml` (preserves reviewed execution policy).
 ///
 /// Does not modify `package.json` or `package-lock.json`.
 pub fn init_project(start: &Path) -> weave_core::Result<InitOutcome> {
     let discovery = discover_project(start)?;
     let root = discovery.layout.root;
-
-    if discovery.layout.weave_initialized {
-        return Err(Error::AlreadyInitialized { root: root.clone() });
-    }
 
     // Require a supported lockfile for init so we do not invent dependency state.
     if discovery.layout.lockfile.is_none() {
@@ -41,6 +45,24 @@ pub fn init_project(start: &Path) -> weave_core::Result<InitOutcome> {
 
     let store_dir = default_store_dir()?;
     ensure_store_layout(&store_dir)?;
+
+    if discovery.layout.weave_initialized {
+        let weave_dir = root.join(WEAVE_DIR);
+        let _ = crate::registry::register_project(&root);
+        ensure_gitignore_entry(&root)?;
+        return Ok(InitOutcome {
+            root,
+            weave_dir,
+            store_dir,
+            lockfile_present: true,
+            created: false,
+            next_steps: vec![
+                "weave doctor --json".into(),
+                "weave switch --json".into(),
+                "weave status --json".into(),
+            ],
+        });
+    }
 
     let weave_dir = root.join(WEAVE_DIR);
     create_dir(&weave_dir)?;
@@ -61,6 +83,12 @@ pub fn init_project(start: &Path) -> weave_core::Result<InitOutcome> {
         weave_dir,
         store_dir,
         lockfile_present: true,
+        created: true,
+        next_steps: vec![
+            "weave doctor --json".into(),
+            "weave switch --json".into(),
+            "weave status --json".into(),
+        ],
     })
 }
 
@@ -200,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn init_creates_weave_metadata() {
+    fn init_creates_weave_metadata_and_is_idempotent() {
         let _guard = lock_weave_home();
         let tmp = tempfile::tempdir().unwrap();
         std::env::set_var("WEAVE_HOME", tmp.path().join("weave-home"));
@@ -209,6 +237,7 @@ mod tests {
         setup_project(&project, true);
 
         let outcome = init_project(&project).unwrap();
+        assert!(outcome.created);
         assert!(outcome.weave_dir.join("config.toml").is_file());
         assert!(outcome.weave_dir.join("environments").is_dir());
         assert!(outcome.weave_dir.join("metadata").is_dir());
@@ -217,8 +246,9 @@ mod tests {
         let gitignore = fs::read_to_string(project.join(".gitignore")).unwrap();
         assert!(gitignore.contains(".weave/"));
 
-        let err = init_project(&project).unwrap_err();
-        assert!(matches!(err, Error::AlreadyInitialized { .. }));
+        let again = init_project(&project).unwrap();
+        assert!(!again.created);
+        assert_eq!(again.root, outcome.root);
         std::env::remove_var("WEAVE_HOME");
     }
 

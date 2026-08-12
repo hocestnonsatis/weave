@@ -904,7 +904,7 @@ checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
 
 [[package]]
 name = "weave-bench"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -922,7 +922,7 @@ dependencies = [
 
 [[package]]
 name = "weave-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -934,7 +934,7 @@ dependencies = [
 
 [[package]]
 name = "weave-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "sha1",
@@ -945,7 +945,7 @@ dependencies = [
 
 [[package]]
 name = "weave-engine"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -963,7 +963,7 @@ dependencies = [
 
 [[package]]
 name = "weave-fs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "flate2",
  "serde",
@@ -977,7 +977,7 @@ dependencies = [
 
 [[package]]
 name = "weave-git"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "tempfile",
  "thiserror",
@@ -986,7 +986,7 @@ dependencies = [
 
 [[package]]
 name = "weave-lockfile"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -997,7 +997,7 @@ dependencies = [
 
 [[package]]
 name = "weave-store"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "sha2",

@@ -88,8 +88,26 @@ pub struct EnvironmentRecord {
     pub package_count: usize,
     /// Optional human label (e.g. branch name association is separate).
     pub label: Option<String>,
+    /// Caller-supplied owner/session id (never auto-detected; agents must pass explicitly).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner: Option<String>,
+    /// RFC3339 creation time (set on first persist of this id).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    /// RFC3339 last successful activation time.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_activated_at: Option<String>,
     /// Map of package key → artifact id hex for materialization.
     pub artifacts: BTreeMap<String, String>,
+}
+
+/// Options when creating / refreshing an environment record.
+#[derive(Debug, Clone, Default)]
+pub struct CreateEnvironmentOpts {
+    /// Optional label (defaults to git branch when callers supply it).
+    pub label: Option<String>,
+    /// Explicit owner/session. Never inferred from process/AI presence.
+    pub owner: Option<String>,
 }
 
 /// Manage `.weave/environments/` records.
@@ -233,6 +251,72 @@ impl EnvironmentStore {
         })?;
         fs::rename(&tmp, &path).map_err(|source| Error::Io { path, source })
     }
+
+    /// Clear the active pointer when it currently names `id` (metadata only).
+    pub fn clear_active_if(&self, id: &EnvironmentId) -> weave_core::Result<()> {
+        match self.active_id()? {
+            Some(active) if &active == id => {
+                let path = self.active_path();
+                match fs::remove_file(&path) {
+                    Ok(()) => Ok(()),
+                    Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+                    Err(source) => Err(Error::Io { path, source }),
+                }
+            }
+            _ => Ok(()),
+        }
+    }
+
+    /// Remove an environment record. Refuses if it is the active environment.
+    pub fn remove(&self, id: &EnvironmentId) -> weave_core::Result<EnvironmentRecord> {
+        let record = self.get(id)?;
+        if self.active_id()?.as_ref() == Some(id) {
+            return Err(Error::InvalidState {
+                path: self.path_for(id),
+                reason: format!(
+                    "refusing to remove active environment {id}; switch away or deactivate first"
+                ),
+            });
+        }
+        let path = self.path_for(id);
+        fs::remove_file(&path).map_err(|source| Error::Io { path, source })?;
+        Ok(record)
+    }
+
+    /// Resolve an id, id-prefix, or label to a unique environment.
+    pub fn resolve(&self, target: &str) -> weave_core::Result<EnvironmentRecord> {
+        let envs = self.list()?;
+        let matches: Vec<_> = envs
+            .into_iter()
+            .filter(|e| {
+                e.label.as_deref() == Some(target)
+                    || e.id.as_str() == target
+                    || e.id.as_str().starts_with(target)
+            })
+            .collect();
+        match matches.as_slice() {
+            [one] => Ok(one.clone()),
+            [] => Err(Error::InvalidState {
+                path: self.dir(),
+                reason: format!("no environment matches '{target}'"),
+            }),
+            many => Err(Error::InvalidState {
+                path: self.dir(),
+                reason: format!(
+                    "ambiguous environment target '{target}' matches {} records; use a longer id",
+                    many.len()
+                ),
+            }),
+        }
+    }
+
+    /// Stamp `last_activated_at` and persist.
+    pub fn mark_activated(&self, id: &EnvironmentId) -> weave_core::Result<EnvironmentRecord> {
+        let mut record = self.get(id)?;
+        record.last_activated_at = Some(utc_now_rfc3339());
+        self.save(&record)?;
+        Ok(record)
+    }
 }
 
 /// Create an environment record from the project's lockfile graph and artifacts.
@@ -242,12 +326,40 @@ pub fn create_environment(
     artifacts: &BTreeMap<weave_core::PackageKey, weave_store::ArtifactId>,
     label: Option<String>,
 ) -> weave_core::Result<EnvironmentRecord> {
+    create_environment_with_opts(
+        project_root,
+        graph,
+        artifacts,
+        CreateEnvironmentOpts { label, owner: None },
+    )
+}
+
+/// Create / refresh an environment with explicit ownership options.
+pub fn create_environment_with_opts(
+    project_root: &Path,
+    graph: &DependencyGraph,
+    artifacts: &BTreeMap<weave_core::PackageKey, weave_store::ArtifactId>,
+    opts: CreateEnvironmentOpts,
+) -> weave_core::Result<EnvironmentRecord> {
     let platform = PlatformIdentity::host();
     let id = EnvironmentId::derive(graph, &platform);
+    let store = EnvironmentStore::open(project_root);
+    let prior = store.get(&id).ok();
     let mut artifact_map = BTreeMap::new();
     for (key, artifact) in artifacts {
         artifact_map.insert(key.as_str().to_owned(), artifact.to_string());
     }
+    let owner = opts
+        .owner
+        .or_else(|| prior.as_ref().and_then(|p| p.owner.clone()));
+    let created_at = prior
+        .as_ref()
+        .and_then(|p| p.created_at.clone())
+        .unwrap_or_else(utc_now_rfc3339);
+    let last_activated_at = prior.as_ref().and_then(|p| p.last_activated_at.clone());
+    let label = opts
+        .label
+        .or_else(|| prior.as_ref().and_then(|p| p.label.clone()));
     let record = EnvironmentRecord {
         id,
         graph_identity: graph.identity(),
@@ -256,12 +368,24 @@ pub fn create_environment(
         lockfile_version: graph.lockfile_version,
         package_count: graph.package_count(),
         label,
+        owner,
+        created_at: Some(created_at),
+        last_activated_at,
         artifacts: artifact_map,
     };
-    let store = EnvironmentStore::open(project_root);
     store.save(&record)?;
     let _ = crate::registry::register_project(project_root);
     Ok(record)
+}
+
+fn utc_now_rfc3339() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    // Compact UTC stamp without pulling a time crate dependency.
+    format!("{secs}")
 }
 
 fn hex(bytes: &[u8]) -> String {

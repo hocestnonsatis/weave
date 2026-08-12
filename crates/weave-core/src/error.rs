@@ -25,8 +25,9 @@ pub enum Error {
     /// No supported lockfile was found.
     #[error(
         "no supported lockfile found in {root}\n\
-         Weave currently requires npm package-lock.json.\n\
-         Run `npm install` (or `npm i --package-lock-only`) to create one, then retry."
+         Weave currently requires npm package-lock.json (lockfileVersion 1–3).\n\
+         Run `npm install` or `npm i --package-lock-only` to create one, then `weave init`.\n\
+         Yarn/pnpm/Bun lockfiles alone are not supported yet."
     )]
     MissingLockfile {
         /// Project root that was inspected.
@@ -34,7 +35,12 @@ pub enum Error {
     },
 
     /// The lockfile format is not supported yet.
-    #[error("unsupported lockfile at {path}: {reason}")]
+    #[error(
+        "unsupported project lockfile at {path}: {reason}\n\
+         Weave does not replace npm and will not convert lockfiles automatically.\n\
+         Next: keep your existing package manager, or add package-lock.json via \
+         `npm i --package-lock-only` if you intentionally want Weave."
+    )]
     UnsupportedLockfile {
         /// Path to the lockfile.
         path: PathBuf,

@@ -4,6 +4,7 @@ use std::path::Path;
 
 use weave_core::{
     DependencyStatus, EnvironmentStatus, GitStatus, MaterializationStatus, ProjectStatus,
+    WEAVE_BACKUP_NODE_MODULES, WEAVE_CANDIDATE_DIR, WEAVE_DIR,
 };
 use weave_git::GitRepository;
 use weave_lockfile::parse_lockfile;
@@ -56,6 +57,36 @@ pub fn project_status(start: &Path) -> weave_core::Result<ProjectStatus> {
         None => (None, None, None),
     };
 
+    let leftover_candidate = layout
+        .root
+        .join(WEAVE_DIR)
+        .join(WEAVE_CANDIDATE_DIR)
+        .exists();
+    let leftover_backup = layout
+        .root
+        .join(WEAVE_DIR)
+        .join(WEAVE_BACKUP_NODE_MODULES)
+        .exists();
+
+    let active_matches_lockfile = match (&active_environment, &graph_identity) {
+        (Some(active), Some(gid)) => known
+            .iter()
+            .find(|e| e.id.as_str() == active.as_str())
+            .map(|e| e.graph_identity.as_str() == gid.as_str()),
+        _ => None,
+    };
+
+    let next_steps = compute_next_steps(
+        layout.weave_initialized,
+        layout.lockfile.is_some(),
+        parse_error.is_some(),
+        active_environment.is_some(),
+        node_modules_present,
+        leftover_candidate || leftover_backup,
+        active_matches_lockfile,
+        repo.working_tree.dependency_files_dirty,
+    );
+
     Ok(ProjectStatus {
         initialized: layout.weave_initialized,
         git: GitStatus {
@@ -71,17 +102,86 @@ pub fn project_status(start: &Path) -> weave_core::Result<ProjectStatus> {
             lockfile_kind: layout.lockfile_kind,
             lockfile_path,
             package_count,
-            graph_identity,
+            graph_identity: graph_identity.clone(),
             parse_error,
         },
         materialization: MaterializationStatus {
             node_modules_present,
-            active_environment,
+            active_environment: active_environment.clone(),
         },
         environment: EnvironmentStatus {
             known_count,
             branch_association,
+            environments: known
+                .into_iter()
+                .map(|e| {
+                    let active = active_environment.as_deref() == Some(e.id.as_str());
+                    let matches_lockfile = graph_identity
+                        .as_ref()
+                        .map(|g| g == e.graph_identity.as_str());
+                    weave_core::EnvironmentSummary {
+                        id: e.id.to_string(),
+                        label: e.label,
+                        owner: e.owner,
+                        package_count: e.package_count,
+                        active,
+                        matches_lockfile,
+                        created_at: e.created_at,
+                        last_activated_at: e.last_activated_at,
+                    }
+                })
+                .collect(),
         },
         project: layout,
+        next_steps,
     })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn compute_next_steps(
+    initialized: bool,
+    lockfile_present: bool,
+    parse_error: bool,
+    has_active: bool,
+    node_modules_present: bool,
+    needs_recover: bool,
+    active_matches_lockfile: Option<bool>,
+    dependency_files_dirty: bool,
+) -> Vec<String> {
+    let mut steps = Vec::new();
+    if !lockfile_present {
+        steps.push(
+            "create package-lock.json with `npm install` or `npm i --package-lock-only` \
+             (Yarn/pnpm-only projects are unsupported)"
+                .into(),
+        );
+        return steps;
+    }
+    if parse_error {
+        steps.push("fix package-lock.json parse errors, then weave doctor --json".into());
+        return steps;
+    }
+    if !initialized {
+        steps.push("weave init --json".into());
+        steps.push("weave doctor --json".into());
+        steps.push("weave switch --json".into());
+        return steps;
+    }
+    if needs_recover {
+        steps.push("weave recover --json".into());
+    }
+    if dependency_files_dirty {
+        steps.push(
+            "dependency files dirty vs HEAD — commit or stash before relying on branch labels"
+                .into(),
+        );
+    }
+    if !has_active || !node_modules_present || active_matches_lockfile == Some(false) {
+        steps.push("weave switch --json".into());
+    }
+    steps.push("weave status --json".into());
+    if has_active && active_matches_lockfile != Some(false) && node_modules_present {
+        steps.push("weave doctor --json".into());
+    }
+    steps
 }
