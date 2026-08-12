@@ -1,6 +1,10 @@
 # Weave
 
-Git-aware development environment engine for Node.js projects.
+<p align="center">
+  <img src="docs/assets/weave-icon.png" alt="Weave logo" width="160" height="160" />
+</p>
+
+<p align="center"><strong>Git-aware development environment engine for Node.js projects.</strong></p>
 
 Weave separates **source state**, **dependency state**, and **workspace state**. `node_modules` is treated as a materialized view of a content-addressed dependency environment — not as the source of truth.
 
@@ -8,13 +12,13 @@ Weave separates **source state**, **dependency state**, and **workspace state**.
 
 ## Status
 
-**0.1.0** (draft GitHub Release). Extraction-first public 0.x scope.
-Plain `weave switch` stays execution- and network-free; experimental exec
-requires config opt-in + `--with-exec` and is never silently enabled.
+**0.1.1** (extraction-first public 0.x). Plain `weave switch` stays execution- and
+network-free; experimental exec requires config opt-in + `--with-exec` and is
+never silently enabled.
 
 - Repository: https://github.com/hocestnonsatis/weave
 - License: [MIT](./LICENSE)
-- Release notes: [`docs/release-notes-0.1.md`](./docs/release-notes-0.1.md) · Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
+- Release notes: [`docs/release-notes-0.1.1.md`](./docs/release-notes-0.1.1.md) · Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
 Compatibility: [`docs/compatibility.md`](./docs/compatibility.md) · Platforms: [`docs/supported-platforms.md`](./docs/supported-platforms.md) · Security: [`docs/security.md`](./docs/security.md) · Dependabot: [`docs/dependabot.md`](./docs/dependabot.md) · Release: [`docs/release.md`](./docs/release.md)
 
