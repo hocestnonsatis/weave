@@ -28,6 +28,7 @@ Use this before publishing a public 0.x tag.
 - [ ] Fresh `.weave/config.toml` has execution disabled / no `profile=open`
 - [ ] `WEAVE_EXEC=1` alone does not enable execution (covered by unit tests)
 - [ ] Extraction-only path documented as the supported default
+- [ ] Dependabot open alerts are not dominated by corpus/fixtures (`docs/dependabot.md`)
 
 ## Publish
 

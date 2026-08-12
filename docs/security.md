@@ -24,6 +24,13 @@ Always verify `SHA256SUMS` (and preferably GitHub attestation) before running a
 downloaded `weave` binary. Prefer `scripts/install-from-dist.sh`, which checks
 checksums and installs mode `0755` without setuid.
 
+## Dependabot / dependency alerts
+
+Weave’s shipped surface is Rust (`Cargo.lock`). Thousands of GitHub Dependabot
+alerts on this repo historically came from **pinned npm corpus and test
+fixtures**, not from Weave runtime deps. Policy, dismiss tooling, and required
+auto-triage follow-ups: [`docs/dependabot.md`](./dependabot.md).
+
 ## Reporting issues
 
 Report security bugs privately to the repository maintainers. Do not file public

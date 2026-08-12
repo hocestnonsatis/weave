@@ -1,0 +1,40 @@
+# Dependabot version updates — Weave production/build surface only.
+#
+# All npm package-lock.json trees in this repo are pinned corpus fixtures or
+# parser/test fixtures (see docs/dependabot.md). They are deliberately NOT
+# covered by version updates: changing them would break benchmark provenance
+# and lockfile parser expectations.
+#
+# Dependabot alerts for those paths are dismissed as not_used (and should be
+# auto-triaged by manifest path). Do not add a blanket npm ecosystem entry
+# at "/" — it would open noise PRs against fixtures without improving Weave.
+
+version: 2
+updates:
+  # Rust workspace that Weave ships / builds (Cargo.lock at repo root).
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - rust
+    groups:
+      cargo-patch:
+        patterns:
+          - "*"
+        update-types:
+          - patch
+
+  # CI / release workflows only (not fixture manifests).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions

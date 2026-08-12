@@ -4,9 +4,9 @@
 - Kaynak sözleşme: `WEAVE.md`
 - Tamamlanan: M0–M10, Phase 2–18; **Phase 19 zero-friction adoption**
 - Repo: `https://github.com/hocestnonsatis/weave` (main) — do not rename
-- Tag: `v0.1.0` — **draft** (not published)
-- Phase 18: agent workflow (`--json`, `--owner`, env remove/prune); ADR-0018
-- Phase 19: idempotent init, `guide`, `recover`, status.next_steps, clear pnpm/yarn refuse; ADR-0019; `docs/agent-quickstart.md`; `weave-bench phase19`
+- Tag: `v0.1.0` (prerelease published); **`v0.1.1` draft** @ `65da5c6` — do not auto-publish
+- Dependabot: **1874** open alerts were 100% npm corpus/fixtures (0 cargo); dismissed `not_used`; version updates = cargo+actions only (`docs/dependabot.md`)
+- Phase 18–19 + ADR-0020 packaged in 0.1.1 stabilization
 - Verdict: YES as agent dependency substrate for extraction-ready npm lockfile projects via guide/JSON — not automatic, not silent npm replacement
 - **Post-0.1 mode active** (ADR-0020): no autonomous new feature phases
 - Güncelleme: 2026-08-12

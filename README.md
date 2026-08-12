@@ -16,7 +16,7 @@ requires config opt-in + `--with-exec` and is never silently enabled.
 - License: [MIT](./LICENSE)
 - Release notes: [`docs/release-notes-0.1.md`](./docs/release-notes-0.1.md) · Changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
-Compatibility: [`docs/compatibility.md`](./docs/compatibility.md) · Platforms: [`docs/supported-platforms.md`](./docs/supported-platforms.md) · Security: [`docs/security.md`](./docs/security.md) · Release: [`docs/release.md`](./docs/release.md)
+Compatibility: [`docs/compatibility.md`](./docs/compatibility.md) · Platforms: [`docs/supported-platforms.md`](./docs/supported-platforms.md) · Security: [`docs/security.md`](./docs/security.md) · Dependabot: [`docs/dependabot.md`](./docs/dependabot.md) · Release: [`docs/release.md`](./docs/release.md)
 
 
 ## Requirements

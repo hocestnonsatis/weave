@@ -26,7 +26,9 @@ Stabilization release packaging post-`v0.1.0` adoption and agent-workflow work.
 ### Changed
 - Clearer refuse path when Yarn/pnpm/Bun lockfiles are present without `package-lock.json`
 - Adoption docs point agents at `guide --json` first
-- Post-0.1 development rule: no autonomous feature phases without approved design
+- Post-0.1 development rule: no autonomous new feature phases without approved design
+- Dependabot: version updates limited to `cargo` + `github-actions`; npm alerts on pinned
+  corpus/fixture lockfiles triaged as non-product (`docs/dependabot.md`)
 
 ### Security
 - Unchanged dual gate: plain `switch` never runs scripts / never opens install-script network

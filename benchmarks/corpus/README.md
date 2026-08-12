@@ -29,5 +29,7 @@ Folders are organizational. Prefer metrics from Weave graph analysis over folder
 - Not a vendored `node_modules`
 - Not a license redistrib of upstream source trees
 - Not sufficient alone for offline Weave *materialization* (registry tarballs not bundled)
+- **Not Weave production dependencies** — Dependabot must not “fix” these lockfiles
+  for CVEs; that would break provenance. See [`docs/dependabot.md`](../../docs/dependabot.md).
 
 Offline **analysis** (graph stats, artifact overlap, lifecycle classification) needs only these lockfiles.

@@ -33,3 +33,9 @@ Artifacts land in `dist/`:
 ## Checklist
 
 See [`docs/RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
+
+## Dependabot hygiene (before publish)
+
+Confirm open Dependabot alerts are not dominated by `benchmarks/corpus` or
+crate fixtures — see [`docs/dependabot.md`](./dependabot.md). Cargo/Actions
+updates stay enabled; fixture npm trees stay pinned.
