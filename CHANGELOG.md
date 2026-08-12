@@ -9,6 +9,9 @@ releases are for fixes and docs.
 
 ## [Unreleased]
 
+### Changed
+- Dependencies: `ureq` 3.4, `toml` 1.1, `sha1`/`sha2` 0.11; GitHub Actions checkout/setup-node/upload-artifact/attest/gh-release majors
+
 ## [0.1.1] — 2026-08-12
 
 Stabilization release packaging post-`v0.1.0` adoption and agent-workflow work.

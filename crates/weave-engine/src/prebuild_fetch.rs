@@ -59,44 +59,37 @@ impl UreqPrebuildTransport {
 
 impl PrebuildTransport for UreqPrebuildTransport {
     fn get_no_redirect(&self, url: &str) -> weave_core::Result<PrebuildHttpResponse> {
-        let agent = ureq::AgentBuilder::new().redirects(0).build();
-        match agent.get(url).set("User-Agent", &self.user_agent).call() {
-            Ok(resp) => {
-                let status = resp.status();
-                let location = resp.header("location").map(str::to_owned);
-                let mut body = Vec::new();
-                resp.into_reader()
-                    .read_to_end(&mut body)
-                    .map_err(|err| Error::FetchFailed {
-                        url: url.to_owned(),
-                        reason: err.to_string(),
-                    })?;
-                Ok(PrebuildHttpResponse {
-                    status,
-                    location,
-                    body,
-                })
-            }
-            Err(ureq::Error::Status(code, resp)) => {
-                let location = resp.header("location").map(str::to_owned);
-                // Treat redirect statuses delivered as Error::Status the same.
-                if (300..400).contains(&code) {
-                    return Ok(PrebuildHttpResponse {
-                        status: code,
-                        location,
-                        body: Vec::new(),
-                    });
-                }
-                Err(Error::FetchFailed {
-                    url: url.to_owned(),
-                    reason: format!("HTTP {code}"),
-                })
-            }
-            Err(err) => Err(Error::FetchFailed {
+        // Manual redirect following: disable ureq redirects and treat all HTTP
+        // statuses as Ok so 3xx Location headers stay inspectable.
+        let config = ureq::Agent::config_builder()
+            .max_redirects(0)
+            .http_status_as_error(false)
+            .user_agent(self.user_agent.as_str())
+            .build();
+        let agent = ureq::Agent::new_with_config(config);
+        let resp = agent.get(url).call().map_err(|err| Error::FetchFailed {
+            url: url.to_owned(),
+            reason: err.to_string(),
+        })?;
+        let status = resp.status().as_u16();
+        let location = resp
+            .headers()
+            .get("location")
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_owned);
+        let mut body = Vec::new();
+        resp.into_body()
+            .as_reader()
+            .read_to_end(&mut body)
+            .map_err(|err| Error::FetchFailed {
                 url: url.to_owned(),
                 reason: err.to_string(),
-            }),
-        }
+            })?;
+        Ok(PrebuildHttpResponse {
+            status,
+            location,
+            body,
+        })
     }
 }
 

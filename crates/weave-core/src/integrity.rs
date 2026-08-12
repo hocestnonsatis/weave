@@ -79,9 +79,8 @@ impl Integrity {
     pub fn verify(&self, bytes: &[u8], package: &str) -> Result<()> {
         let actual = match self.algorithm {
             IntegrityAlgo::Sha1 => {
-                use sha1::Digest as Sha1Digest;
-                let _ = Sha1::new(); // keep type linked
-                <Sha1 as Sha1Digest>::digest(bytes).to_vec()
+                use sha1::Digest as _;
+                Sha1::digest(bytes).to_vec()
             }
             IntegrityAlgo::Sha256 => Sha256::digest(bytes).to_vec(),
             IntegrityAlgo::Sha512 => Sha512::digest(bytes).to_vec(),

@@ -104,7 +104,7 @@ impl ArtifactSource for HttpArtifactSource {
         };
 
         let response = ureq::get(&url)
-            .set("User-Agent", &self.user_agent)
+            .header("User-Agent", &self.user_agent)
             .call()
             .map_err(|err| Error::FetchFailed {
                 url: url.clone(),
@@ -113,7 +113,8 @@ impl ArtifactSource for HttpArtifactSource {
 
         let mut bytes = Vec::new();
         response
-            .into_reader()
+            .into_body()
+            .as_reader()
             .read_to_end(&mut bytes)
             .map_err(|err| Error::FetchFailed {
                 url: url.clone(),
