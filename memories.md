@@ -4,10 +4,9 @@
 - Kaynak sözleşme: `WEAVE.md`
 - Tamamlanan: M0–M10, Phase 2–18; **Phase 19 zero-friction adoption**
 - Repo: `https://github.com/hocestnonsatis/weave` (main) — do not rename
-- Tag: `v0.1.0` (prerelease published); **`v0.1.1` draft** @ `65da5c6` — do not auto-publish
-- Dependabot: **1874** open alerts were 100% npm corpus/fixtures (0 cargo); dismissed `not_used`; version updates = cargo+actions only (`docs/dependabot.md`)
-- Phase 18–19 + ADR-0020 packaged in 0.1.1 stabilization
-- Verdict: YES as agent dependency substrate for extraction-ready npm lockfile projects via guide/JSON — not automatic, not silent npm replacement
+- Tag: `v0.1.0` (prerelease); **`v0.1.1` published** — next work is post-0.1.1 on main
+- Deps current @ `5e9fd14`: ureq 3.4, toml 1.1, sha1/sha2 0.11; Actions majors; Dependabot PRs #5–13 closed as superseded
+- Dependabot: version updates = cargo+actions only (`docs/dependabot.md`); corpus alerts dismissed
 - **Post-0.1 mode active** (ADR-0020): no autonomous new feature phases
 - Güncelleme: 2026-08-12
 
