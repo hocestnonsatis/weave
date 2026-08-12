@@ -47,7 +47,7 @@ jobs:
         run: bash scripts/verify-release.sh
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: dist/weave
 
